@@ -48,3 +48,10 @@
 **Commit**: Add document processing pipeline with chunking and embedding creation
 **Acceptance**: 6/6 criteria met
 **Verification**: tests FAIL on previous state (file not found), PASS on current state (197 tests)
+
+## Round 8
+**Task**: Task 8 — LLM provider interface
+**Files created**: knowledgebot/providers/llm.py, knowledgebot/providers/__init__.py, tests/test_llm.py
+**Commit**: Add LLM provider interface with MockLLMProvider and OpenAI-compatible implementation
+**Acceptance**: 8/8 criteria met
+**Verification**: tests FAIL on previous state (file not found), PASS on current state (251 tests)
