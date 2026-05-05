@@ -6,8 +6,8 @@ Build the RAG platform in layers: first establish core data models and utilities
 ## Tasks
 - [x] Task 1: Implement user authentication system with registration, login, JWT token generation, and password hashing (core/auth.py, core/models.py + tests)
 - [x] Task 2: Implement knowledge base management allowing users to create, list, update, and delete knowledge bases with metadata (knowledge/models.py, knowledge/service.py + tests)
-- [>] Task 3: Implement document upload and storage with file handling and document metadata management (knowledge/documents.py + tests)
-- [ ] Task 4: Implement text chunking to split documents into smaller pieces based on configurable chunk size and overlap (core/chunking.py + tests)
+- [x] Task 3: Implement document upload and storage with file handling and document metadata management (knowledge/documents.py + tests)
+- [>] Task 4: Implement text chunking to split documents into smaller pieces based on configurable chunk size and overlap (core/chunking.py + tests)
 - [ ] Task 5: Implement embedding service interface and a simple embedding provider for creating vector representations of text (core/embeddings.py + tests)
 - [ ] Task 6: Implement vector store for storing and querying embeddings with similarity search capabilities (core/vectorstore.py + tests)
 - [ ] Task 7: Implement document processing pipeline that chunks documents and creates embeddings (knowledge/processing.py + tests)

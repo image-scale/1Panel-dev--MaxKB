@@ -30,16 +30,28 @@
 - [x] KnowledgeBase.to_dict() returns a dictionary representation without internal state
 - [x] Knowledge base settings include default chunk_size and similarity_threshold
 
-## Task 3: Document Upload and Storage
+## Task 3: Document Upload and Storage (COMPLETED)
 
 ### Acceptance Criteria
-- [ ] Document model stores id, knowledge_base_id, name, content, file_type, char_length, status, created_at, updated_at
-- [ ] DocumentStatus enum has PENDING, PROCESSING, COMPLETED, ERROR values
-- [ ] create_document(kb_id, name, content, file_type) creates and returns a new document
-- [ ] create_document with non-existent kb_id raises ValueError
-- [ ] get_document(doc_id) returns the document if exists, None otherwise
-- [ ] list_documents(kb_id) returns all documents for that knowledge base
-- [ ] update_document(doc_id, status=DocumentStatus.COMPLETED) updates the document
-- [ ] delete_document(doc_id) removes the document and returns True
-- [ ] Document.to_dict() returns dictionary representation
-- [ ] char_length is automatically calculated from content
+- [x] Document model stores id, knowledge_base_id, name, content, file_type, char_length, status, created_at, updated_at
+- [x] DocumentStatus enum has PENDING, PROCESSING, COMPLETED, ERROR values
+- [x] create_document(kb_id, name, content, file_type) creates and returns a new document
+- [x] create_document with non-existent kb_id raises ValueError
+- [x] get_document(doc_id) returns the document if exists, None otherwise
+- [x] list_documents(kb_id) returns all documents for that knowledge base
+- [x] update_document(doc_id, status=DocumentStatus.COMPLETED) updates the document
+- [x] delete_document(doc_id) removes the document and returns True
+- [x] Document.to_dict() returns dictionary representation
+- [x] char_length is automatically calculated from content
+
+## Task 4: Text Chunking
+
+### Acceptance Criteria
+- [ ] chunk_text(text, chunk_size=512, overlap=50) splits text into chunks
+- [ ] Each chunk has at most chunk_size characters
+- [ ] Chunks overlap by the specified overlap amount
+- [ ] Empty text returns empty list
+- [ ] Text shorter than chunk_size returns single chunk
+- [ ] Chunking respects sentence boundaries when possible (splits on . ! ? followed by space)
+- [ ] ChunkingConfig dataclass stores chunk_size and overlap settings
+- [ ] chunk_document(document, config) chunks a document's content

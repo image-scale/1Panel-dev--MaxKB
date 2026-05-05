@@ -13,3 +13,10 @@
 **Commit**: Add knowledge base management system
 **Acceptance**: 10/10 criteria met
 **Verification**: tests FAIL on previous state (patch cannot apply), PASS on current state (63 tests)
+
+## Round 3
+**Task**: Task 3 — Document upload and storage
+**Files created**: knowledgebot/knowledge/documents.py, tests/test_documents.py
+**Commit**: Add document management system
+**Acceptance**: 10/10 criteria met
+**Verification**: tests FAIL on previous state (patch cannot apply), PASS on current state (97 tests)
