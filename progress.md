@@ -69,3 +69,10 @@
 **Commit**: Add chat service with RAG pipeline for context retrieval and response generation
 **Acceptance**: 10/10 criteria met
 **Verification**: tests FAIL on previous state (file not found), PASS on current state (365 tests)
+
+## Round 11
+**Task**: Task 11 — REST API for user operations
+**Files created**: knowledgebot/api/__init__.py, knowledgebot/api/users.py, tests/test_api_users.py
+**Commit**: Add REST API endpoints for user registration, login, profile, and authentication
+**Acceptance**: 10/10 criteria met
+**Verification**: tests FAIL on previous state (file not found), PASS on current state (401 tests)
