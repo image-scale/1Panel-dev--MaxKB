@@ -27,3 +27,24 @@
 **Commit**: Add text chunking system
 **Acceptance**: 8/8 criteria met
 **Verification**: tests FAIL on previous state (patch cannot apply), PASS on current state (126 tests)
+
+## Round 5
+**Task**: Task 5 — Embedding service
+**Files created**: knowledgebot/core/embeddings.py, tests/test_embeddings.py
+**Commit**: Add embedding service with simple hash-based provider
+**Acceptance**: 8/8 criteria met
+**Verification**: tests FAIL on previous state (file not found), PASS on current state (154 tests)
+
+## Round 6
+**Task**: Task 6 — Vector store
+**Files created**: knowledgebot/core/vectorstore.py, tests/test_vectorstore.py
+**Commit**: Add vector store for storing and querying embeddings
+**Acceptance**: 8/8 criteria met
+**Verification**: tests FAIL on previous state (file not found), PASS on current state (179 tests)
+
+## Round 7
+**Task**: Task 7 — Document processing pipeline
+**Files created**: knowledgebot/knowledge/processing.py, tests/test_processing.py
+**Commit**: Add document processing pipeline with chunking and embedding creation
+**Acceptance**: 6/6 criteria met
+**Verification**: tests FAIL on previous state (file not found), PASS on current state (197 tests)
