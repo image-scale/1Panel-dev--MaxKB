@@ -6,3 +6,10 @@
 **Commit**: Add user authentication system with registration, login, and JWT tokens
 **Acceptance**: 12/12 criteria met
 **Verification**: tests FAIL on previous state (patch cannot apply), PASS on current state (31 tests)
+
+## Round 2
+**Task**: Task 2 — Knowledge base management
+**Files created**: knowledgebot/knowledge/models.py, knowledgebot/knowledge/service.py, tests/test_knowledge.py
+**Commit**: Add knowledge base management system
+**Acceptance**: 10/10 criteria met
+**Verification**: tests FAIL on previous state (patch cannot apply), PASS on current state (63 tests)
