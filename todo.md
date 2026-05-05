@@ -4,7 +4,7 @@
 Build the RAG platform in layers: first establish core data models and utilities, then implement knowledge base with document processing and embeddings, followed by application/agent configuration, and finally the chat interface with RAG pipeline. Each task delivers a complete, testable feature.
 
 ## Tasks
-- [ ] Task 1: Implement user authentication system with registration, login, JWT token generation, and password hashing (core/auth.py, core/models.py + tests)
+- [>] Task 1: Implement user authentication system with registration, login, JWT token generation, and password hashing (core/auth.py, core/models.py + tests)
 - [ ] Task 2: Implement knowledge base management allowing users to create, list, update, and delete knowledge bases with metadata (knowledge/models.py, knowledge/service.py + tests)
 - [ ] Task 3: Implement document upload and storage with file handling and document metadata management (knowledge/documents.py + tests)
 - [ ] Task 4: Implement text chunking to split documents into smaller pieces based on configurable chunk size and overlap (core/chunking.py + tests)
