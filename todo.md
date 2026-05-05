@@ -12,7 +12,7 @@ Build the RAG platform in layers: first establish core data models and utilities
 - [x] Task 6: Implement vector store for storing and querying embeddings with similarity search capabilities (core/vectorstore.py + tests)
 - [x] Task 7: Implement document processing pipeline that chunks documents and creates embeddings (knowledge/processing.py + tests)
 - [x] Task 8: Implement LLM provider interface with OpenAI-compatible implementation for chat completions (providers/llm.py + tests)
-- [ ] Task 9: Implement application/agent configuration with prompt templates, RAG settings, and model selection (applications/models.py, applications/service.py + tests)
+- [x] Task 9: Implement application/agent configuration with prompt templates, RAG settings, and model selection (applications/models.py, applications/service.py + tests)
 - [ ] Task 10: Implement chat service with RAG pipeline that retrieves relevant context and generates responses (chat/service.py + tests)
 - [ ] Task 11: Implement REST API endpoints for user operations (api/users.py + tests)
 - [ ] Task 12: Implement REST API endpoints for knowledge base and document operations (api/knowledge.py + tests)

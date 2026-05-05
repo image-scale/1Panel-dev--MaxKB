@@ -55,3 +55,10 @@
 **Commit**: Add LLM provider interface with MockLLMProvider and OpenAI-compatible implementation
 **Acceptance**: 8/8 criteria met
 **Verification**: tests FAIL on previous state (file not found), PASS on current state (251 tests)
+
+## Round 9
+**Task**: Task 9 — Application/agent configuration
+**Files created**: knowledgebot/applications/models.py, knowledgebot/applications/service.py, knowledgebot/applications/__init__.py, tests/test_applications.py
+**Commit**: Add application configuration with prompt templates, RAG settings, and model selection
+**Acceptance**: 10/10 criteria met
+**Verification**: tests FAIL on previous state (file not found), PASS on current state (318 tests)
