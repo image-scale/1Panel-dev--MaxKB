@@ -20,3 +20,10 @@
 **Commit**: Add document management system
 **Acceptance**: 10/10 criteria met
 **Verification**: tests FAIL on previous state (patch cannot apply), PASS on current state (97 tests)
+
+## Round 4
+**Task**: Task 4 — Text chunking
+**Files created**: knowledgebot/core/chunking.py, tests/test_chunking.py
+**Commit**: Add text chunking system
+**Acceptance**: 8/8 criteria met
+**Verification**: tests FAIL on previous state (patch cannot apply), PASS on current state (126 tests)

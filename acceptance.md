@@ -44,14 +44,26 @@
 - [x] Document.to_dict() returns dictionary representation
 - [x] char_length is automatically calculated from content
 
-## Task 4: Text Chunking
+## Task 4: Text Chunking (COMPLETED)
 
 ### Acceptance Criteria
-- [ ] chunk_text(text, chunk_size=512, overlap=50) splits text into chunks
-- [ ] Each chunk has at most chunk_size characters
-- [ ] Chunks overlap by the specified overlap amount
-- [ ] Empty text returns empty list
-- [ ] Text shorter than chunk_size returns single chunk
-- [ ] Chunking respects sentence boundaries when possible (splits on . ! ? followed by space)
-- [ ] ChunkingConfig dataclass stores chunk_size and overlap settings
-- [ ] chunk_document(document, config) chunks a document's content
+- [x] chunk_text(text, chunk_size=512, overlap=50) splits text into chunks
+- [x] Each chunk has at most chunk_size characters
+- [x] Chunks overlap by the specified overlap amount
+- [x] Empty text returns empty list
+- [x] Text shorter than chunk_size returns single chunk
+- [x] Chunking respects sentence boundaries when possible (splits on . ! ? followed by space)
+- [x] ChunkingConfig dataclass stores chunk_size and overlap settings
+- [x] chunk_document(document, config) chunks a document's content
+
+## Task 5: Embedding Service
+
+### Acceptance Criteria
+- [ ] EmbeddingProvider abstract base class with embed_text and embed_texts methods
+- [ ] SimpleEmbedding provider that creates basic hash-based embeddings for testing
+- [ ] embed_text("hello") returns a list of floats (embedding vector)
+- [ ] embed_texts(["hello", "world"]) returns a list of embedding vectors
+- [ ] Embedding dimension is configurable
+- [ ] get_embedding_provider() returns the configured provider
+- [ ] normalize_embedding(vector) normalizes a vector to unit length
+- [ ] cosine_similarity(v1, v2) computes similarity between two vectors
