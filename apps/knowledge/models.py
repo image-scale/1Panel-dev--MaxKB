@@ -490,3 +490,194 @@ class Paragraph(models.Model):
         """Deactivate the paragraph."""
         self.is_active = False
         self.save()
+
+
+class SourceType:
+    """Source types for embeddings."""
+    PARAGRAPH = 'p'
+    PROBLEM = 'q'
+    TITLE = 't'
+
+    CHOICES = [
+        (PARAGRAPH, 'Paragraph'),
+        (PROBLEM, 'Problem'),
+        (TITLE, 'Title'),
+    ]
+
+
+class Embedding(models.Model):
+    """
+    Vector embedding for semantic search.
+
+    Stores vector representations of text chunks for RAG retrieval.
+    """
+
+    id = models.CharField(
+        primary_key=True,
+        max_length=128,
+        editable=False,
+        verbose_name="Embedding ID"
+    )
+    source_id = models.CharField(
+        max_length=128,
+        verbose_name="Source ID",
+        db_index=True
+    )
+    source_type = models.CharField(
+        verbose_name='Source Type',
+        max_length=5,
+        choices=SourceType.CHOICES,
+        default=SourceType.PARAGRAPH,
+        db_index=True
+    )
+    is_active = models.BooleanField(
+        verbose_name="Active",
+        default=True,
+        db_index=True
+    )
+    knowledge = models.ForeignKey(
+        Knowledge,
+        on_delete=models.CASCADE,
+        verbose_name="Knowledge Base",
+        related_name='embeddings'
+    )
+    document = models.ForeignKey(
+        Document,
+        on_delete=models.CASCADE,
+        verbose_name="Document",
+        related_name='embeddings'
+    )
+    paragraph = models.ForeignKey(
+        Paragraph,
+        on_delete=models.CASCADE,
+        verbose_name="Paragraph",
+        related_name='embeddings'
+    )
+    embedding = models.JSONField(
+        verbose_name="Vector",
+        default=list
+    )
+    meta = models.JSONField(
+        verbose_name="Metadata",
+        default=dict,
+        blank=True
+    )
+    create_time = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Created At"
+    )
+    update_time = models.DateTimeField(
+        auto_now=True,
+        verbose_name="Updated At"
+    )
+
+    class Meta:
+        db_table = "embedding"
+        ordering = ['-create_time']
+
+    def __str__(self):
+        return f"Embedding({self.source_type}:{self.source_id})"
+
+    def save(self, *args, **kwargs):
+        if not self.id:
+            self.id = str(uuid.uuid4())
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def create_embedding(
+        cls,
+        paragraph: Paragraph,
+        vector: list,
+        source_type: str = SourceType.PARAGRAPH,
+        source_id: str = None,
+        is_active: bool = True,
+        meta: dict = None
+    ) -> 'Embedding':
+        """Create a new embedding for a paragraph."""
+        embedding = cls(
+            source_id=source_id or str(paragraph.id),
+            source_type=source_type,
+            is_active=is_active,
+            knowledge=paragraph.knowledge,
+            document=paragraph.document,
+            paragraph=paragraph,
+            embedding=vector,
+            meta=meta or {}
+        )
+        embedding.save()
+        return embedding
+
+    @classmethod
+    def batch_create(
+        cls,
+        embeddings_data: list
+    ) -> list:
+        """
+        Batch create embeddings for efficiency.
+
+        Args:
+            embeddings_data: List of dicts with keys:
+                - paragraph: Paragraph instance
+                - vector: List of floats
+                - source_type: Source type (optional)
+                - source_id: Source ID (optional)
+                - meta: Metadata dict (optional)
+
+        Returns:
+            List of created Embedding instances.
+        """
+        embedding_objects = []
+        for data in embeddings_data:
+            paragraph = data['paragraph']
+            embedding = cls(
+                id=str(uuid.uuid4()),
+                source_id=data.get('source_id', str(paragraph.id)),
+                source_type=data.get('source_type', SourceType.PARAGRAPH),
+                is_active=data.get('is_active', True),
+                knowledge=paragraph.knowledge,
+                document=paragraph.document,
+                paragraph=paragraph,
+                embedding=data['vector'],
+                meta=data.get('meta', {})
+            )
+            embedding_objects.append(embedding)
+
+        cls.objects.bulk_create(embedding_objects)
+        return embedding_objects
+
+    @classmethod
+    def delete_by_knowledge(cls, knowledge_id: str) -> int:
+        """Delete all embeddings for a knowledge base."""
+        count, _ = cls.objects.filter(knowledge_id=knowledge_id).delete()
+        return count
+
+    @classmethod
+    def delete_by_document(cls, document_id: str) -> int:
+        """Delete all embeddings for a document."""
+        count, _ = cls.objects.filter(document_id=document_id).delete()
+        return count
+
+    @classmethod
+    def delete_by_paragraph(cls, paragraph_id: str) -> int:
+        """Delete all embeddings for a paragraph."""
+        count, _ = cls.objects.filter(paragraph_id=paragraph_id).delete()
+        return count
+
+    @classmethod
+    def delete_by_source_id(cls, source_id: str, source_type: str = None) -> int:
+        """Delete embeddings by source ID."""
+        queryset = cls.objects.filter(source_id=source_id)
+        if source_type:
+            queryset = queryset.filter(source_type=source_type)
+        count, _ = queryset.delete()
+        return count
+
+    def activate(self) -> None:
+        """Activate the embedding."""
+        self.is_active = True
+        self.save()
+
+    def deactivate(self) -> None:
+        """Deactivate the embedding."""
+        self.is_active = False
+        self.save()
