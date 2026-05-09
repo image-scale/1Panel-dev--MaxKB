@@ -45,12 +45,23 @@
 ## Task 4: Paragraph Model for Storing Document Segments
 
 ### Acceptance Criteria
-- [ ] Paragraph model has fields: id (UUID), document (FK), knowledge (FK), content, title, status, status_meta, hit_num, is_active, position, create_time, update_time
-- [ ] Paragraphs belong to documents and knowledge bases
-- [ ] Paragraphs track hit count for analytics
-- [ ] Paragraphs can be ordered by position
-- [ ] Paragraphs can be created with content and title
-- [ ] Paragraphs can be retrieved by ID or listed with filtering/pagination
-- [ ] Paragraphs can be updated (content, title, status, position)
-- [ ] Paragraphs can be deleted or deactivated
-- [ ] REST API endpoints for paragraph CRUD operations work correctly
+- [x] Paragraph model has fields: id (UUID), document (FK), knowledge (FK), content, title, status, status_meta, hit_num, is_active, position, create_time, update_time
+- [x] Paragraphs belong to documents and knowledge bases
+- [x] Paragraphs track hit count for analytics
+- [x] Paragraphs can be ordered by position
+- [x] Paragraphs can be created with content and title
+- [x] Paragraphs can be retrieved by ID or listed with filtering/pagination
+- [x] Paragraphs can be updated (content, title, status, position)
+- [x] Paragraphs can be deleted or deactivated
+- [x] REST API endpoints for paragraph CRUD operations work correctly
+
+## Task 5: Text Chunking Utilities
+
+### Acceptance Criteria
+- [ ] Text chunking function that splits text into segments of configurable size
+- [ ] Chunking respects sentence boundaries (splits at punctuation like . ! ? ; newlines)
+- [ ] Chunks do not exceed specified maximum length
+- [ ] Empty chunks are filtered out
+- [ ] Whitespace is properly trimmed from chunks
+- [ ] Chinese and English text both work correctly
+- [ ] Large texts exceeding chunk size are handled gracefully

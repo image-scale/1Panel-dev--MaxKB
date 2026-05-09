@@ -22,3 +22,10 @@
 **Commit**: Add document management within knowledge bases with status tracking
 **Acceptance**: 9/9 criteria met
 **Verification**: tests FAIL on previous state (import error), PASS on current state
+
+## Round 4
+**Task**: Task 4 — Implement paragraph model for storing document segments with CRUD operations
+**Files created**: tests/test_paragraph.py (modified: apps/knowledge/models.py, serializers.py, views.py, urls.py)
+**Commit**: Add paragraph management for document segments with hit tracking
+**Acceptance**: 9/9 criteria met
+**Verification**: tests FAIL on previous state (import error), PASS on current state
