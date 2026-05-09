@@ -18,6 +18,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'apps.users',
     'apps.knowledge',
+    'apps.application',
 ]
 
 ROOT_URLCONF = 'config.urls'
