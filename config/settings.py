@@ -19,6 +19,7 @@ INSTALLED_APPS = [
     'apps.users',
     'apps.knowledge',
     'apps.application',
+    'apps.models_provider',
 ]
 
 ROOT_URLCONF = 'config.urls'
