@@ -37,4 +37,14 @@ urlpatterns = [
         views.DocumentDetailView.as_view(),
         name='document-detail'
     ),
+    path(
+        'workspace/<str:workspace_id>/knowledge/<uuid:knowledge_id>/document/<uuid:document_id>/paragraph',
+        views.ParagraphListView.as_view(),
+        name='paragraph-list'
+    ),
+    path(
+        'workspace/<str:workspace_id>/knowledge/<uuid:knowledge_id>/document/<uuid:document_id>/paragraph/<uuid:paragraph_id>',
+        views.ParagraphDetailView.as_view(),
+        name='paragraph-detail'
+    ),
 ]

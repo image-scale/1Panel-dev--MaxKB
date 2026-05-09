@@ -6,11 +6,12 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 
-from .models import Knowledge, KnowledgeFolder, Document
+from .models import Knowledge, KnowledgeFolder, Document, Paragraph
 from .serializers import (
     KnowledgeSerializer, KnowledgeCreateSerializer, KnowledgeUpdateSerializer,
     KnowledgeFolderSerializer, KnowledgeFolderCreateSerializer,
-    DocumentSerializer, DocumentCreateSerializer, DocumentUpdateSerializer
+    DocumentSerializer, DocumentCreateSerializer, DocumentUpdateSerializer,
+    ParagraphSerializer, ParagraphCreateSerializer, ParagraphUpdateSerializer
 )
 
 
@@ -319,4 +320,136 @@ class DocumentDetailView(APIView):
         return Response({
             'code': 200,
             'message': 'Document deleted successfully'
+        })
+
+
+class ParagraphListView(APIView):
+    """List all paragraphs or create a new one."""
+
+    def get(self, request, workspace_id, knowledge_id, document_id):
+        """Get list of paragraphs for a document."""
+        knowledge = get_object_or_404(
+            Knowledge, id=knowledge_id, workspace_id=workspace_id
+        )
+        document = get_object_or_404(
+            Document, id=document_id, knowledge=knowledge
+        )
+        para_status = request.query_params.get('status')
+        is_active = request.query_params.get('is_active')
+        page = int(request.query_params.get('page', 1))
+        page_size = int(request.query_params.get('page_size', 20))
+
+        queryset = Paragraph.objects.filter(document=document)
+
+        if para_status is not None:
+            queryset = queryset.filter(status=para_status)
+        if is_active is not None:
+            queryset = queryset.filter(is_active=is_active.lower() == 'true')
+
+        total = queryset.count()
+        start = (page - 1) * page_size
+        end = start + page_size
+        paragraphs = queryset[start:end]
+
+        serializer = ParagraphSerializer(paragraphs, many=True)
+        return Response({
+            'code': 200,
+            'message': 'success',
+            'data': {
+                'items': serializer.data,
+                'total': total,
+                'page': page,
+                'page_size': page_size
+            }
+        })
+
+    def post(self, request, workspace_id, knowledge_id, document_id):
+        """Create a new paragraph."""
+        knowledge = get_object_or_404(
+            Knowledge, id=knowledge_id, workspace_id=workspace_id
+        )
+        document = get_object_or_404(
+            Document, id=document_id, knowledge=knowledge
+        )
+        data = request.data.copy()
+        data['document'] = document.id
+        data['knowledge'] = knowledge.id
+        serializer = ParagraphCreateSerializer(data=data)
+        if serializer.is_valid():
+            paragraph = serializer.save()
+            return Response({
+                'code': 201,
+                'message': 'Paragraph created successfully',
+                'data': ParagraphSerializer(paragraph).data
+            }, status=status.HTTP_201_CREATED)
+        return Response({
+            'code': 400,
+            'message': 'Validation error',
+            'errors': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ParagraphDetailView(APIView):
+    """Retrieve, update, or delete a paragraph."""
+
+    def get(self, request, workspace_id, knowledge_id, document_id, paragraph_id):
+        """Get paragraph by ID."""
+        knowledge = get_object_or_404(
+            Knowledge, id=knowledge_id, workspace_id=workspace_id
+        )
+        document = get_object_or_404(
+            Document, id=document_id, knowledge=knowledge
+        )
+        paragraph = get_object_or_404(
+            Paragraph, id=paragraph_id, document=document
+        )
+        serializer = ParagraphSerializer(paragraph)
+        return Response({
+            'code': 200,
+            'message': 'success',
+            'data': serializer.data
+        })
+
+    def put(self, request, workspace_id, knowledge_id, document_id, paragraph_id):
+        """Update paragraph by ID."""
+        knowledge = get_object_or_404(
+            Knowledge, id=knowledge_id, workspace_id=workspace_id
+        )
+        document = get_object_or_404(
+            Document, id=document_id, knowledge=knowledge
+        )
+        paragraph = get_object_or_404(
+            Paragraph, id=paragraph_id, document=document
+        )
+        serializer = ParagraphUpdateSerializer(
+            paragraph, data=request.data, partial=True
+        )
+        if serializer.is_valid():
+            paragraph = serializer.save()
+            return Response({
+                'code': 200,
+                'message': 'Paragraph updated successfully',
+                'data': ParagraphSerializer(paragraph).data
+            })
+        return Response({
+            'code': 400,
+            'message': 'Validation error',
+            'errors': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, workspace_id, knowledge_id, document_id, paragraph_id):
+        """Delete paragraph by ID."""
+        knowledge = get_object_or_404(
+            Knowledge, id=knowledge_id, workspace_id=workspace_id
+        )
+        document = get_object_or_404(
+            Document, id=document_id, knowledge=knowledge
+        )
+        paragraph = get_object_or_404(
+            Paragraph, id=paragraph_id, document=document
+        )
+        paragraph.delete()
+        return Response({
+            'code': 200,
+            'message': 'Paragraph deleted successfully'
         })

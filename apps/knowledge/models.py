@@ -373,3 +373,120 @@ class Document(models.Model):
         """Deactivate the document."""
         self.is_active = False
         self.save()
+
+
+class Paragraph(models.Model):
+    """Paragraph within a document for RAG retrieval."""
+
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False,
+        verbose_name="Paragraph ID"
+    )
+    document = models.ForeignKey(
+        Document,
+        on_delete=models.CASCADE,
+        related_name='paragraphs',
+        verbose_name="Document"
+    )
+    knowledge = models.ForeignKey(
+        Knowledge,
+        on_delete=models.CASCADE,
+        related_name='paragraphs',
+        verbose_name="Knowledge Base"
+    )
+    content = models.TextField(
+        verbose_name="Content",
+        max_length=102400
+    )
+    title = models.CharField(
+        max_length=256,
+        default="",
+        blank=True,
+        verbose_name="Title",
+        db_index=True
+    )
+    status = models.CharField(
+        verbose_name='Status',
+        max_length=20,
+        choices=DocumentStatus.CHOICES,
+        default=DocumentStatus.PENDING,
+        db_index=True
+    )
+    status_meta = models.JSONField(
+        verbose_name="Status Metadata",
+        default=dict,
+        blank=True
+    )
+    hit_num = models.IntegerField(
+        verbose_name="Hit Count",
+        default=0
+    )
+    is_active = models.BooleanField(
+        default=True,
+        db_index=True,
+        verbose_name="Active"
+    )
+    position = models.IntegerField(
+        verbose_name="Position",
+        default=0,
+        db_index=True
+    )
+    create_time = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Created At"
+    )
+    update_time = models.DateTimeField(
+        auto_now=True,
+        verbose_name="Updated At"
+    )
+
+    class Meta:
+        db_table = "paragraph"
+        ordering = ['position', '-create_time']
+
+    def __str__(self):
+        title_preview = self.title[:30] if self.title else self.content[:30]
+        return f"{title_preview}..."
+
+    @classmethod
+    def create_paragraph(
+        cls,
+        document: Document,
+        content: str,
+        title: str = "",
+        position: int = 0
+    ) -> 'Paragraph':
+        """Create a new paragraph in a document."""
+        paragraph = cls(
+            document=document,
+            knowledge=document.knowledge,
+            content=content,
+            title=title,
+            position=position
+        )
+        paragraph.save()
+        return paragraph
+
+    def update_status(self, new_status: str, meta: dict = None) -> None:
+        """Update paragraph status with optional metadata."""
+        self.status = new_status
+        if meta:
+            self.status_meta.update(meta)
+        self.save()
+
+    def record_hit(self) -> None:
+        """Record a hit on this paragraph."""
+        self.hit_num += 1
+        self.save()
+
+    def activate(self) -> None:
+        """Activate the paragraph."""
+        self.is_active = True
+        self.save()
+
+    def deactivate(self) -> None:
+        """Deactivate the paragraph."""
+        self.is_active = False
+        self.save()

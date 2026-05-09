@@ -2,7 +2,7 @@
 Serializers for Knowledge Base models.
 """
 from rest_framework import serializers
-from .models import Knowledge, KnowledgeFolder, KnowledgeType, KnowledgeScope, Document, DocumentStatus, HitHandlingMethod
+from .models import Knowledge, KnowledgeFolder, KnowledgeType, KnowledgeScope, Document, DocumentStatus, HitHandlingMethod, Paragraph
 
 
 class KnowledgeFolderSerializer(serializers.ModelSerializer):
@@ -145,6 +145,60 @@ class DocumentUpdateSerializer(serializers.ModelSerializer):
         fields = [
             'name', 'status', 'status_meta', 'is_active',
             'hit_handling_method', 'directly_return_similarity', 'meta'
+        ]
+
+    def validate_status(self, value):
+        valid_statuses = [choice[0] for choice in DocumentStatus.CHOICES]
+        if value not in valid_statuses:
+            raise serializers.ValidationError(
+                f"Status must be one of {valid_statuses}"
+            )
+        return value
+
+
+class ParagraphSerializer(serializers.ModelSerializer):
+    """Serializer for reading paragraph data."""
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    document_name = serializers.SerializerMethodField()
+    knowledge_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Paragraph
+        fields = [
+            'id', 'document', 'document_name', 'knowledge', 'knowledge_name',
+            'content', 'title', 'status', 'status_display', 'status_meta',
+            'hit_num', 'is_active', 'position', 'create_time', 'update_time'
+        ]
+        read_only_fields = ['id', 'create_time', 'update_time']
+
+    def get_document_name(self, obj):
+        return obj.document.name if obj.document else None
+
+    def get_knowledge_name(self, obj):
+        return obj.knowledge.name if obj.knowledge else None
+
+
+class ParagraphCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creating a paragraph."""
+
+    class Meta:
+        model = Paragraph
+        fields = ['document', 'knowledge', 'content', 'title', 'position']
+
+    def validate_content(self, value):
+        if not value or not value.strip():
+            raise serializers.ValidationError("Content cannot be empty")
+        return value
+
+
+class ParagraphUpdateSerializer(serializers.ModelSerializer):
+    """Serializer for updating a paragraph."""
+
+    class Meta:
+        model = Paragraph
+        fields = [
+            'content', 'title', 'status', 'status_meta',
+            'is_active', 'position'
         ]
 
     def validate_status(self, value):

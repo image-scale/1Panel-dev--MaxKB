@@ -32,12 +32,25 @@
 ## Task 3: Document Model with Status Tracking and Document Management API
 
 ### Acceptance Criteria
-- [ ] Document model has fields: id (UUID), knowledge (FK), name, char_length, status, status_meta, is_active, type, hit_handling_method, directly_return_similarity, meta, create_time, update_time
-- [ ] Document status supports states: PENDING, STARTED, SUCCESS, FAILURE, REVOKE, REVOKED, IGNORED
-- [ ] Hit handling methods include: optimization (model optimization), directly_return (direct answer)
-- [ ] Documents can be created within a knowledge base
-- [ ] Documents can be retrieved by ID or listed with filtering/pagination
-- [ ] Documents can be updated (name, status, settings)
-- [ ] Documents can be deleted or deactivated (is_active=False)
-- [ ] REST API endpoints for document CRUD operations work correctly
-- [ ] Documents track character length and can store arbitrary metadata
+- [x] Document model has fields: id (UUID), knowledge (FK), name, char_length, status, status_meta, is_active, type, hit_handling_method, directly_return_similarity, meta, create_time, update_time
+- [x] Document status supports states: PENDING, STARTED, SUCCESS, FAILURE, REVOKE, REVOKED, IGNORED
+- [x] Hit handling methods include: optimization (model optimization), directly_return (direct answer)
+- [x] Documents can be created within a knowledge base
+- [x] Documents can be retrieved by ID or listed with filtering/pagination
+- [x] Documents can be updated (name, status, settings)
+- [x] Documents can be deleted or deactivated (is_active=False)
+- [x] REST API endpoints for document CRUD operations work correctly
+- [x] Documents track character length and can store arbitrary metadata
+
+## Task 4: Paragraph Model for Storing Document Segments
+
+### Acceptance Criteria
+- [ ] Paragraph model has fields: id (UUID), document (FK), knowledge (FK), content, title, status, status_meta, hit_num, is_active, position, create_time, update_time
+- [ ] Paragraphs belong to documents and knowledge bases
+- [ ] Paragraphs track hit count for analytics
+- [ ] Paragraphs can be ordered by position
+- [ ] Paragraphs can be created with content and title
+- [ ] Paragraphs can be retrieved by ID or listed with filtering/pagination
+- [ ] Paragraphs can be updated (content, title, status, position)
+- [ ] Paragraphs can be deleted or deactivated
+- [ ] REST API endpoints for paragraph CRUD operations work correctly
