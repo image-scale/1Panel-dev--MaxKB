@@ -131,3 +131,15 @@
 - [x] Provider registry for managing available providers
 - [x] Model CRUD operations through API
 - [x] Models can be filtered by type and provider
+
+## Task 12: Tag System
+
+### Acceptance Criteria
+- [x] Tag model with key-value pairs scoped to knowledge bases
+- [x] DocumentTag mapping for associating tags with documents
+- [x] Tags can be created, retrieved, updated, and deleted
+- [x] Documents can have multiple tags assigned
+- [x] Tags are unique per key-value within a knowledge base
+- [x] API endpoints for tag CRUD and document-tag associations
+- [x] Documents can be filtered by tags
+- [x] Tag operations cascade properly (delete tag removes mappings)

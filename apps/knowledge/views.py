@@ -6,14 +6,16 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 
-from .models import Knowledge, KnowledgeFolder, Document, Paragraph, Problem, ProblemParagraphMapping
+from .models import Knowledge, KnowledgeFolder, Document, Paragraph, Problem, ProblemParagraphMapping, Tag, DocumentTag
 from .serializers import (
     KnowledgeSerializer, KnowledgeCreateSerializer, KnowledgeUpdateSerializer,
     KnowledgeFolderSerializer, KnowledgeFolderCreateSerializer,
     DocumentSerializer, DocumentCreateSerializer, DocumentUpdateSerializer,
     ParagraphSerializer, ParagraphCreateSerializer, ParagraphUpdateSerializer,
     ProblemSerializer, ProblemCreateSerializer, ProblemUpdateSerializer,
-    ProblemParagraphMappingSerializer, ProblemParagraphMappingCreateSerializer
+    ProblemParagraphMappingSerializer, ProblemParagraphMappingCreateSerializer,
+    TagSerializer, TagCreateSerializer, TagUpdateSerializer,
+    DocumentTagSerializer, DocumentTagCreateSerializer
 )
 
 
@@ -646,4 +648,267 @@ class ProblemParagraphMappingDetailView(APIView):
         return Response({
             'code': 200,
             'message': 'Mapping deleted successfully'
+        })
+
+
+class TagListView(APIView):
+    """List tags for a knowledge base or create a new one."""
+
+    def get(self, request, workspace_id, knowledge_id):
+        """Get list of tags for a knowledge base."""
+        knowledge = get_object_or_404(
+            Knowledge, id=knowledge_id, workspace_id=workspace_id
+        )
+        key = request.query_params.get('key')
+        page = int(request.query_params.get('page', 1))
+        page_size = int(request.query_params.get('page_size', 50))
+
+        queryset = Tag.objects.filter(knowledge=knowledge)
+        if key:
+            queryset = queryset.filter(key=key)
+
+        total = queryset.count()
+        start = (page - 1) * page_size
+        end = start + page_size
+        tags = queryset[start:end]
+
+        serializer = TagSerializer(tags, many=True)
+        return Response({
+            'code': 200,
+            'message': 'success',
+            'data': {
+                'items': serializer.data,
+                'total': total,
+                'page': page,
+                'page_size': page_size
+            }
+        })
+
+    def post(self, request, workspace_id, knowledge_id):
+        """Create a new tag."""
+        knowledge = get_object_or_404(
+            Knowledge, id=knowledge_id, workspace_id=workspace_id
+        )
+        serializer = TagCreateSerializer(data=request.data)
+        if serializer.is_valid():
+            tag, created = Tag.get_or_create_tag(
+                knowledge=knowledge,
+                key=serializer.validated_data['key'],
+                value=serializer.validated_data['value']
+            )
+            return Response({
+                'code': 201 if created else 200,
+                'message': 'Tag created successfully' if created else 'Tag already exists',
+                'data': TagSerializer(tag).data
+            }, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
+        return Response({
+            'code': 400,
+            'message': 'Validation error',
+            'errors': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+
+class TagDetailView(APIView):
+    """Retrieve, update, or delete a tag."""
+
+    def get(self, request, workspace_id, knowledge_id, tag_id):
+        """Get tag by ID."""
+        knowledge = get_object_or_404(
+            Knowledge, id=knowledge_id, workspace_id=workspace_id
+        )
+        tag = get_object_or_404(Tag, id=tag_id, knowledge=knowledge)
+        serializer = TagSerializer(tag)
+        return Response({
+            'code': 200,
+            'message': 'success',
+            'data': serializer.data
+        })
+
+    def put(self, request, workspace_id, knowledge_id, tag_id):
+        """Update tag by ID."""
+        knowledge = get_object_or_404(
+            Knowledge, id=knowledge_id, workspace_id=workspace_id
+        )
+        tag = get_object_or_404(Tag, id=tag_id, knowledge=knowledge)
+        serializer = TagUpdateSerializer(tag, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                'code': 200,
+                'message': 'Tag updated successfully',
+                'data': TagSerializer(tag).data
+            })
+        return Response({
+            'code': 400,
+            'message': 'Validation error',
+            'errors': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, workspace_id, knowledge_id, tag_id):
+        """Delete tag by ID."""
+        knowledge = get_object_or_404(
+            Knowledge, id=knowledge_id, workspace_id=workspace_id
+        )
+        tag = get_object_or_404(Tag, id=tag_id, knowledge=knowledge)
+        tag.delete()
+        return Response({
+            'code': 200,
+            'message': 'Tag deleted successfully'
+        })
+
+
+class TagKeysView(APIView):
+    """Get unique tag keys for a knowledge base."""
+
+    def get(self, request, workspace_id, knowledge_id):
+        """Get unique tag keys."""
+        knowledge = get_object_or_404(
+            Knowledge, id=knowledge_id, workspace_id=workspace_id
+        )
+        keys = Tag.get_unique_keys(str(knowledge.id))
+        return Response({
+            'code': 200,
+            'message': 'success',
+            'data': keys
+        })
+
+
+class TagValuesView(APIView):
+    """Get values for a specific tag key."""
+
+    def get(self, request, workspace_id, knowledge_id, key):
+        """Get values for a tag key."""
+        knowledge = get_object_or_404(
+            Knowledge, id=knowledge_id, workspace_id=workspace_id
+        )
+        values = Tag.get_values_for_key(str(knowledge.id), key)
+        return Response({
+            'code': 200,
+            'message': 'success',
+            'data': values
+        })
+
+
+class DocumentTagListView(APIView):
+    """Manage tags for a document."""
+
+    def get(self, request, workspace_id, knowledge_id, document_id):
+        """Get tags for a document."""
+        knowledge = get_object_or_404(
+            Knowledge, id=knowledge_id, workspace_id=workspace_id
+        )
+        document = get_object_or_404(
+            Document, id=document_id, knowledge=knowledge
+        )
+        tags = DocumentTag.get_tags_for_document(str(document.id))
+        serializer = TagSerializer(tags, many=True)
+        return Response({
+            'code': 200,
+            'message': 'success',
+            'data': serializer.data
+        })
+
+    def post(self, request, workspace_id, knowledge_id, document_id):
+        """Add tags to a document."""
+        knowledge = get_object_or_404(
+            Knowledge, id=knowledge_id, workspace_id=workspace_id
+        )
+        document = get_object_or_404(
+            Document, id=document_id, knowledge=knowledge
+        )
+
+        serializer = DocumentTagCreateSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response({
+                'code': 400,
+                'message': 'Validation error',
+                'errors': serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        tags_to_add = []
+
+        if serializer.validated_data.get('tag_ids'):
+            tags_to_add.extend(
+                Tag.objects.filter(
+                    id__in=serializer.validated_data['tag_ids'],
+                    knowledge=knowledge
+                )
+            )
+
+        if serializer.validated_data.get('tags'):
+            for tag_data in serializer.validated_data['tags']:
+                tag, _ = Tag.get_or_create_tag(
+                    knowledge=knowledge,
+                    key=tag_data.get('key', ''),
+                    value=tag_data.get('value', '')
+                )
+                tags_to_add.append(tag)
+
+        mappings = DocumentTag.add_tags_to_document(document, tags_to_add)
+        return Response({
+            'code': 201,
+            'message': f'{len(mappings)} tags added to document',
+            'data': TagSerializer(tags_to_add, many=True).data
+        }, status=status.HTTP_201_CREATED)
+
+    def delete(self, request, workspace_id, knowledge_id, document_id):
+        """Remove all tags from a document."""
+        knowledge = get_object_or_404(
+            Knowledge, id=knowledge_id, workspace_id=workspace_id
+        )
+        document = get_object_or_404(
+            Document, id=document_id, knowledge=knowledge
+        )
+        count, _ = DocumentTag.objects.filter(document=document).delete()
+        return Response({
+            'code': 200,
+            'message': f'{count} tags removed from document'
+        })
+
+
+class DocumentTagDetailView(APIView):
+    """Remove a specific tag from a document."""
+
+    def delete(self, request, workspace_id, knowledge_id, document_id, tag_id):
+        """Remove a tag from a document."""
+        knowledge = get_object_or_404(
+            Knowledge, id=knowledge_id, workspace_id=workspace_id
+        )
+        document = get_object_or_404(
+            Document, id=document_id, knowledge=knowledge
+        )
+        tag = get_object_or_404(Tag, id=tag_id, knowledge=knowledge)
+        mapping = get_object_or_404(
+            DocumentTag, document=document, tag=tag
+        )
+        mapping.delete()
+        return Response({
+            'code': 200,
+            'message': 'Tag removed from document'
+        })
+
+
+class DocumentsByTagView(APIView):
+    """Get documents filtered by tags."""
+
+    def post(self, request, workspace_id, knowledge_id):
+        """Get documents matching tag filters."""
+        knowledge = get_object_or_404(
+            Knowledge, id=knowledge_id, workspace_id=workspace_id
+        )
+        tag_filters = request.data.get('tags', [])
+        if not tag_filters:
+            return Response({
+                'code': 400,
+                'message': 'tags filter is required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        documents = DocumentTag.get_documents_by_tags(
+            str(knowledge.id), tag_filters
+        )
+        serializer = DocumentSerializer(documents, many=True)
+        return Response({
+            'code': 200,
+            'message': 'success',
+            'data': serializer.data
         })

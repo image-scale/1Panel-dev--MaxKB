@@ -67,4 +67,41 @@ urlpatterns = [
         views.ProblemParagraphMappingDetailView.as_view(),
         name='problem-mapping-detail'
     ),
+    # Tag endpoints
+    path(
+        'workspace/<str:workspace_id>/knowledge/<uuid:knowledge_id>/tag',
+        views.TagListView.as_view(),
+        name='tag-list'
+    ),
+    path(
+        'workspace/<str:workspace_id>/knowledge/<uuid:knowledge_id>/tag/<uuid:tag_id>',
+        views.TagDetailView.as_view(),
+        name='tag-detail'
+    ),
+    path(
+        'workspace/<str:workspace_id>/knowledge/<uuid:knowledge_id>/tag/keys',
+        views.TagKeysView.as_view(),
+        name='tag-keys'
+    ),
+    path(
+        'workspace/<str:workspace_id>/knowledge/<uuid:knowledge_id>/tag/key/<str:key>/values',
+        views.TagValuesView.as_view(),
+        name='tag-values'
+    ),
+    # Document tag endpoints
+    path(
+        'workspace/<str:workspace_id>/knowledge/<uuid:knowledge_id>/document/<uuid:document_id>/tag',
+        views.DocumentTagListView.as_view(),
+        name='document-tag-list'
+    ),
+    path(
+        'workspace/<str:workspace_id>/knowledge/<uuid:knowledge_id>/document/<uuid:document_id>/tag/<uuid:tag_id>',
+        views.DocumentTagDetailView.as_view(),
+        name='document-tag-detail'
+    ),
+    path(
+        'workspace/<str:workspace_id>/knowledge/<uuid:knowledge_id>/documents-by-tag',
+        views.DocumentsByTagView.as_view(),
+        name='documents-by-tag'
+    ),
 ]

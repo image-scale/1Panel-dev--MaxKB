@@ -854,3 +854,246 @@ class ProblemParagraphMapping(models.Model):
         """Delete all mappings for a paragraph."""
         count, _ = cls.objects.filter(paragraph_id=paragraph_id).delete()
         return count
+
+
+class Tag(models.Model):
+    """
+    Tag with key-value pairs for categorizing documents.
+
+    Tags are scoped to knowledge bases. The key-value combination must be
+    unique within a knowledge base.
+    """
+
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False,
+        verbose_name="Tag ID"
+    )
+    knowledge = models.ForeignKey(
+        Knowledge,
+        on_delete=models.CASCADE,
+        related_name='tags',
+        verbose_name="Knowledge Base"
+    )
+    key = models.CharField(
+        max_length=64,
+        verbose_name="Tag Key",
+        db_index=True
+    )
+    value = models.CharField(
+        max_length=128,
+        verbose_name="Tag Value",
+        db_index=True
+    )
+    create_time = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Created At"
+    )
+    update_time = models.DateTimeField(
+        auto_now=True,
+        verbose_name="Updated At"
+    )
+
+    class Meta:
+        db_table = "tag"
+        unique_together = ['knowledge', 'key', 'value']
+        ordering = ['key', 'value']
+        indexes = [
+            models.Index(fields=['knowledge', 'key']),
+        ]
+
+    def __str__(self):
+        return f"{self.key}={self.value}"
+
+    @classmethod
+    def create_tag(
+        cls,
+        knowledge: Knowledge,
+        key: str,
+        value: str
+    ) -> 'Tag':
+        """Create a new tag."""
+        tag = cls(
+            knowledge=knowledge,
+            key=key,
+            value=value
+        )
+        tag.save()
+        return tag
+
+    @classmethod
+    def get_or_create_tag(
+        cls,
+        knowledge: Knowledge,
+        key: str,
+        value: str
+    ) -> tuple:
+        """Get or create a tag, returns (tag, created)."""
+        return cls.objects.get_or_create(
+            knowledge=knowledge,
+            key=key,
+            value=value
+        )
+
+    @classmethod
+    def get_tags_for_knowledge(cls, knowledge_id: str) -> list:
+        """Get all tags for a knowledge base."""
+        return list(cls.objects.filter(knowledge_id=knowledge_id))
+
+    @classmethod
+    def get_unique_keys(cls, knowledge_id: str) -> list:
+        """Get unique tag keys for a knowledge base."""
+        return list(
+            cls.objects.filter(knowledge_id=knowledge_id)
+            .values_list('key', flat=True)
+            .order_by('key')
+            .distinct()
+        )
+
+    @classmethod
+    def get_values_for_key(cls, knowledge_id: str, key: str) -> list:
+        """Get all values for a specific key in a knowledge base."""
+        return list(
+            cls.objects.filter(knowledge_id=knowledge_id, key=key)
+            .values_list('value', flat=True)
+        )
+
+
+class DocumentTag(models.Model):
+    """
+    Maps tags to documents.
+
+    A document can have multiple tags, and a tag can be applied to
+    multiple documents.
+    """
+
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False,
+        verbose_name="Mapping ID"
+    )
+    document = models.ForeignKey(
+        Document,
+        on_delete=models.CASCADE,
+        related_name='tag_mappings',
+        verbose_name="Document"
+    )
+    tag = models.ForeignKey(
+        Tag,
+        on_delete=models.CASCADE,
+        related_name='document_mappings',
+        verbose_name="Tag"
+    )
+    create_time = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Created At"
+    )
+
+    class Meta:
+        db_table = "document_tag"
+        unique_together = ['document', 'tag']
+        ordering = ['-create_time']
+
+    def __str__(self):
+        return f"Doc({self.document_id}) -> Tag({self.tag.key}={self.tag.value})"
+
+    @classmethod
+    def create_mapping(
+        cls,
+        document: Document,
+        tag: Tag
+    ) -> 'DocumentTag':
+        """Create a mapping between a document and tag."""
+        mapping = cls(
+            document=document,
+            tag=tag
+        )
+        mapping.save()
+        return mapping
+
+    @classmethod
+    def add_tags_to_document(
+        cls,
+        document: Document,
+        tags: list
+    ) -> list:
+        """Add multiple tags to a document."""
+        mappings = []
+        for tag in tags:
+            mapping, created = cls.objects.get_or_create(
+                document=document,
+                tag=tag
+            )
+            if created:
+                mappings.append(mapping)
+        return mappings
+
+    @classmethod
+    def remove_tags_from_document(
+        cls,
+        document: Document,
+        tags: list
+    ) -> int:
+        """Remove multiple tags from a document."""
+        tag_ids = [t.id for t in tags]
+        count, _ = cls.objects.filter(
+            document=document,
+            tag_id__in=tag_ids
+        ).delete()
+        return count
+
+    @classmethod
+    def get_tags_for_document(cls, document_id: str) -> list:
+        """Get all tags for a document."""
+        mappings = cls.objects.filter(document_id=document_id).select_related('tag')
+        return [m.tag for m in mappings]
+
+    @classmethod
+    def get_documents_for_tag(cls, tag_id: str) -> list:
+        """Get all documents with a specific tag."""
+        mappings = cls.objects.filter(tag_id=tag_id).select_related('document')
+        return [m.document for m in mappings]
+
+    @classmethod
+    def get_documents_by_tags(
+        cls,
+        knowledge_id: str,
+        tag_filters: list
+    ) -> list:
+        """
+        Get documents matching tag filters.
+
+        Args:
+            knowledge_id: Knowledge base ID
+            tag_filters: List of dicts with 'key' and optional 'value'
+
+        Returns:
+            List of documents matching all tag filters
+        """
+        from django.db.models import Q, Count
+
+        document_ids = None
+        for filter_dict in tag_filters:
+            key = filter_dict.get('key')
+            value = filter_dict.get('value')
+
+            query = Q(tag__knowledge_id=knowledge_id, tag__key=key)
+            if value:
+                query &= Q(tag__value=value)
+
+            matching_docs = set(
+                cls.objects.filter(query)
+                .values_list('document_id', flat=True)
+            )
+
+            if document_ids is None:
+                document_ids = matching_docs
+            else:
+                document_ids &= matching_docs
+
+        if not document_ids:
+            return []
+
+        return list(Document.objects.filter(id__in=document_ids))

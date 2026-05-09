@@ -2,7 +2,11 @@
 Serializers for Knowledge Base models.
 """
 from rest_framework import serializers
-from .models import Knowledge, KnowledgeFolder, KnowledgeType, KnowledgeScope, Document, DocumentStatus, HitHandlingMethod, Paragraph, Problem, ProblemParagraphMapping
+from .models import (
+    Knowledge, KnowledgeFolder, KnowledgeType, KnowledgeScope,
+    Document, DocumentStatus, HitHandlingMethod, Paragraph,
+    Problem, ProblemParagraphMapping, Tag, DocumentTag
+)
 
 
 class KnowledgeFolderSerializer(serializers.ModelSerializer):
@@ -299,3 +303,106 @@ class ProblemParagraphMappingCreateSerializer(serializers.ModelSerializer):
         )
         mapping.save()
         return mapping
+
+
+class TagSerializer(serializers.ModelSerializer):
+    """Serializer for reading tag data."""
+    document_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Tag
+        fields = [
+            'id', 'knowledge', 'key', 'value',
+            'document_count', 'create_time', 'update_time'
+        ]
+        read_only_fields = ['id', 'create_time', 'update_time']
+
+    def get_document_count(self, obj):
+        return obj.document_mappings.count()
+
+
+class TagCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creating a tag."""
+
+    class Meta:
+        model = Tag
+        fields = ['key', 'value']
+
+    def validate_key(self, value):
+        if not value or not value.strip():
+            raise serializers.ValidationError("Key cannot be empty")
+        return value.strip()
+
+    def validate_value(self, value):
+        if not value or not value.strip():
+            raise serializers.ValidationError("Value cannot be empty")
+        return value.strip()
+
+
+class TagUpdateSerializer(serializers.ModelSerializer):
+    """Serializer for updating a tag."""
+
+    class Meta:
+        model = Tag
+        fields = ['key', 'value']
+
+    def validate_key(self, value):
+        if value is not None and not value.strip():
+            raise serializers.ValidationError("Key cannot be empty")
+        return value.strip() if value else value
+
+    def validate_value(self, value):
+        if value is not None and not value.strip():
+            raise serializers.ValidationError("Value cannot be empty")
+        return value.strip() if value else value
+
+
+class DocumentTagSerializer(serializers.ModelSerializer):
+    """Serializer for reading document-tag mapping."""
+    tag_key = serializers.SerializerMethodField()
+    tag_value = serializers.SerializerMethodField()
+    document_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = DocumentTag
+        fields = [
+            'id', 'document', 'document_name', 'tag',
+            'tag_key', 'tag_value', 'create_time'
+        ]
+        read_only_fields = ['id', 'create_time']
+
+    def get_tag_key(self, obj):
+        return obj.tag.key if obj.tag else None
+
+    def get_tag_value(self, obj):
+        return obj.tag.value if obj.tag else None
+
+    def get_document_name(self, obj):
+        return obj.document.name if obj.document else None
+
+
+class DocumentTagCreateSerializer(serializers.Serializer):
+    """Serializer for adding tags to a document."""
+    tag_ids = serializers.ListField(
+        child=serializers.UUIDField(),
+        required=False,
+        allow_empty=True
+    )
+    tags = serializers.ListField(
+        child=serializers.DictField(),
+        required=False,
+        allow_empty=True
+    )
+
+    def validate(self, data):
+        if not data.get('tag_ids') and not data.get('tags'):
+            raise serializers.ValidationError(
+                "Either tag_ids or tags must be provided"
+            )
+        return data
+
+
+class TagFilterSerializer(serializers.Serializer):
+    """Serializer for filtering documents by tags."""
+    key = serializers.CharField()
+    value = serializers.CharField(required=False, allow_blank=True)
