@@ -6,12 +6,14 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 
-from .models import Knowledge, KnowledgeFolder, Document, Paragraph
+from .models import Knowledge, KnowledgeFolder, Document, Paragraph, Problem, ProblemParagraphMapping
 from .serializers import (
     KnowledgeSerializer, KnowledgeCreateSerializer, KnowledgeUpdateSerializer,
     KnowledgeFolderSerializer, KnowledgeFolderCreateSerializer,
     DocumentSerializer, DocumentCreateSerializer, DocumentUpdateSerializer,
-    ParagraphSerializer, ParagraphCreateSerializer, ParagraphUpdateSerializer
+    ParagraphSerializer, ParagraphCreateSerializer, ParagraphUpdateSerializer,
+    ProblemSerializer, ProblemCreateSerializer, ProblemUpdateSerializer,
+    ProblemParagraphMappingSerializer, ProblemParagraphMappingCreateSerializer
 )
 
 
@@ -452,4 +454,196 @@ class ParagraphDetailView(APIView):
         return Response({
             'code': 200,
             'message': 'Paragraph deleted successfully'
+        })
+
+
+class ProblemListView(APIView):
+    """List all problems or create a new one."""
+
+    def get(self, request, workspace_id, knowledge_id):
+        """Get list of problems for a knowledge base."""
+        knowledge = get_object_or_404(
+            Knowledge, id=knowledge_id, workspace_id=workspace_id
+        )
+        content = request.query_params.get('content')
+        is_active = request.query_params.get('is_active')
+        page = int(request.query_params.get('page', 1))
+        page_size = int(request.query_params.get('page_size', 20))
+
+        queryset = Problem.objects.filter(knowledge=knowledge)
+
+        if content is not None:
+            queryset = queryset.filter(content__icontains=content)
+        if is_active is not None:
+            queryset = queryset.filter(is_active=is_active.lower() == 'true')
+
+        total = queryset.count()
+        start = (page - 1) * page_size
+        end = start + page_size
+        problems = queryset[start:end]
+
+        serializer = ProblemSerializer(problems, many=True)
+        return Response({
+            'code': 200,
+            'message': 'success',
+            'data': {
+                'items': serializer.data,
+                'total': total,
+                'page': page,
+                'page_size': page_size
+            }
+        })
+
+    def post(self, request, workspace_id, knowledge_id):
+        """Create a new problem."""
+        knowledge = get_object_or_404(
+            Knowledge, id=knowledge_id, workspace_id=workspace_id
+        )
+        data = request.data.copy()
+        data['knowledge'] = knowledge.id
+        serializer = ProblemCreateSerializer(data=data)
+        if serializer.is_valid():
+            problem = serializer.save()
+            return Response({
+                'code': 201,
+                'message': 'Problem created successfully',
+                'data': ProblemSerializer(problem).data
+            }, status=status.HTTP_201_CREATED)
+        return Response({
+            'code': 400,
+            'message': 'Validation error',
+            'errors': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ProblemDetailView(APIView):
+    """Retrieve, update, or delete a problem."""
+
+    def get(self, request, workspace_id, knowledge_id, problem_id):
+        """Get problem by ID."""
+        knowledge = get_object_or_404(
+            Knowledge, id=knowledge_id, workspace_id=workspace_id
+        )
+        problem = get_object_or_404(
+            Problem, id=problem_id, knowledge=knowledge
+        )
+        serializer = ProblemSerializer(problem)
+        return Response({
+            'code': 200,
+            'message': 'success',
+            'data': serializer.data
+        })
+
+    def put(self, request, workspace_id, knowledge_id, problem_id):
+        """Update problem by ID."""
+        knowledge = get_object_or_404(
+            Knowledge, id=knowledge_id, workspace_id=workspace_id
+        )
+        problem = get_object_or_404(
+            Problem, id=problem_id, knowledge=knowledge
+        )
+        serializer = ProblemUpdateSerializer(
+            problem, data=request.data, partial=True
+        )
+        if serializer.is_valid():
+            problem = serializer.save()
+            return Response({
+                'code': 200,
+                'message': 'Problem updated successfully',
+                'data': ProblemSerializer(problem).data
+            })
+        return Response({
+            'code': 400,
+            'message': 'Validation error',
+            'errors': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, workspace_id, knowledge_id, problem_id):
+        """Delete problem by ID."""
+        knowledge = get_object_or_404(
+            Knowledge, id=knowledge_id, workspace_id=workspace_id
+        )
+        problem = get_object_or_404(
+            Problem, id=problem_id, knowledge=knowledge
+        )
+        problem.delete()
+        return Response({
+            'code': 200,
+            'message': 'Problem deleted successfully'
+        })
+
+
+class ProblemParagraphMappingListView(APIView):
+    """List and manage problem-paragraph mappings."""
+
+    def get(self, request, workspace_id, knowledge_id, problem_id):
+        """Get paragraphs linked to a problem."""
+        knowledge = get_object_or_404(
+            Knowledge, id=knowledge_id, workspace_id=workspace_id
+        )
+        problem = get_object_or_404(
+            Problem, id=problem_id, knowledge=knowledge
+        )
+
+        mappings = ProblemParagraphMapping.objects.filter(problem=problem)
+        serializer = ProblemParagraphMappingSerializer(mappings, many=True)
+        return Response({
+            'code': 200,
+            'message': 'success',
+            'data': serializer.data
+        })
+
+    def post(self, request, workspace_id, knowledge_id, problem_id):
+        """Link a paragraph to a problem."""
+        knowledge = get_object_or_404(
+            Knowledge, id=knowledge_id, workspace_id=workspace_id
+        )
+        problem = get_object_or_404(
+            Problem, id=problem_id, knowledge=knowledge
+        )
+        paragraph_id = request.data.get('paragraph_id')
+        if not paragraph_id:
+            return Response({
+                'code': 400,
+                'message': 'paragraph_id is required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        paragraph = get_object_or_404(
+            Paragraph, id=paragraph_id, knowledge=knowledge
+        )
+
+        if ProblemParagraphMapping.objects.filter(
+            problem=problem, paragraph=paragraph
+        ).exists():
+            return Response({
+                'code': 400,
+                'message': 'Mapping already exists'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        mapping = ProblemParagraphMapping.create_mapping(problem, paragraph)
+        return Response({
+            'code': 201,
+            'message': 'Paragraph linked successfully',
+            'data': ProblemParagraphMappingSerializer(mapping).data
+        }, status=status.HTTP_201_CREATED)
+
+
+class ProblemParagraphMappingDetailView(APIView):
+    """Delete a problem-paragraph mapping."""
+
+    def delete(self, request, workspace_id, knowledge_id, problem_id, mapping_id):
+        """Unlink a paragraph from a problem."""
+        knowledge = get_object_or_404(
+            Knowledge, id=knowledge_id, workspace_id=workspace_id
+        )
+        problem = get_object_or_404(
+            Problem, id=problem_id, knowledge=knowledge
+        )
+        mapping = get_object_or_404(
+            ProblemParagraphMapping, id=mapping_id, problem=problem
+        )
+        mapping.delete()
+        return Response({
+            'code': 200,
+            'message': 'Mapping deleted successfully'
         })

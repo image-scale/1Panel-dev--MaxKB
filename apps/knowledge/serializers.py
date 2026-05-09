@@ -2,7 +2,7 @@
 Serializers for Knowledge Base models.
 """
 from rest_framework import serializers
-from .models import Knowledge, KnowledgeFolder, KnowledgeType, KnowledgeScope, Document, DocumentStatus, HitHandlingMethod, Paragraph
+from .models import Knowledge, KnowledgeFolder, KnowledgeType, KnowledgeScope, Document, DocumentStatus, HitHandlingMethod, Paragraph, Problem, ProblemParagraphMapping
 
 
 class KnowledgeFolderSerializer(serializers.ModelSerializer):
@@ -208,3 +208,94 @@ class ParagraphUpdateSerializer(serializers.ModelSerializer):
                 f"Status must be one of {valid_statuses}"
             )
         return value
+
+
+class ProblemSerializer(serializers.ModelSerializer):
+    """Serializer for reading problem data."""
+    knowledge_name = serializers.SerializerMethodField()
+    paragraph_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Problem
+        fields = [
+            'id', 'knowledge', 'knowledge_name', 'content', 'hit_num',
+            'is_active', 'paragraph_count', 'create_time', 'update_time'
+        ]
+        read_only_fields = ['id', 'create_time', 'update_time']
+
+    def get_knowledge_name(self, obj):
+        return obj.knowledge.name if obj.knowledge else None
+
+    def get_paragraph_count(self, obj):
+        return obj.paragraph_mappings.count()
+
+
+class ProblemCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creating a problem."""
+
+    class Meta:
+        model = Problem
+        fields = ['knowledge', 'content']
+
+    def validate_content(self, value):
+        if not value or not value.strip():
+            raise serializers.ValidationError("Content cannot be empty")
+        return value
+
+
+class ProblemUpdateSerializer(serializers.ModelSerializer):
+    """Serializer for updating a problem."""
+
+    class Meta:
+        model = Problem
+        fields = ['content', 'is_active']
+
+    def validate_content(self, value):
+        if value is not None and not value.strip():
+            raise serializers.ValidationError("Content cannot be empty")
+        return value
+
+
+class ProblemParagraphMappingSerializer(serializers.ModelSerializer):
+    """Serializer for reading problem-paragraph mapping."""
+    problem_content = serializers.SerializerMethodField()
+    paragraph_title = serializers.SerializerMethodField()
+    paragraph_content = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ProblemParagraphMapping
+        fields = [
+            'id', 'problem', 'problem_content', 'paragraph',
+            'paragraph_title', 'paragraph_content', 'document',
+            'knowledge', 'create_time'
+        ]
+        read_only_fields = ['id', 'create_time']
+
+    def get_problem_content(self, obj):
+        return obj.problem.content if obj.problem else None
+
+    def get_paragraph_title(self, obj):
+        return obj.paragraph.title if obj.paragraph else None
+
+    def get_paragraph_content(self, obj):
+        content = obj.paragraph.content if obj.paragraph else ""
+        return content[:100] + "..." if len(content) > 100 else content
+
+
+class ProblemParagraphMappingCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creating a problem-paragraph mapping."""
+
+    class Meta:
+        model = ProblemParagraphMapping
+        fields = ['problem', 'paragraph']
+
+    def create(self, validated_data):
+        paragraph = validated_data['paragraph']
+        mapping = ProblemParagraphMapping(
+            problem=validated_data['problem'],
+            paragraph=paragraph,
+            document=paragraph.document,
+            knowledge=paragraph.knowledge
+        )
+        mapping.save()
+        return mapping

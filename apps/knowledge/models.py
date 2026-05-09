@@ -681,3 +681,176 @@ class Embedding(models.Model):
         """Deactivate the embedding."""
         self.is_active = False
         self.save()
+
+
+class Problem(models.Model):
+    """
+    Question/problem linked to paragraphs for Q&A retrieval.
+
+    Problems serve as alternate entry points for finding relevant paragraphs.
+    When a user asks a question similar to a stored problem, the linked
+    paragraphs can be retrieved.
+    """
+
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False,
+        verbose_name="Problem ID"
+    )
+    knowledge = models.ForeignKey(
+        Knowledge,
+        on_delete=models.CASCADE,
+        related_name='problems',
+        verbose_name="Knowledge Base"
+    )
+    content = models.CharField(
+        max_length=256,
+        verbose_name="Question Content",
+        db_index=True
+    )
+    hit_num = models.IntegerField(
+        verbose_name="Hit Count",
+        default=0
+    )
+    is_active = models.BooleanField(
+        default=True,
+        db_index=True,
+        verbose_name="Active"
+    )
+    create_time = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Created At"
+    )
+    update_time = models.DateTimeField(
+        auto_now=True,
+        verbose_name="Updated At"
+    )
+
+    class Meta:
+        db_table = "problem"
+        ordering = ['-create_time']
+
+    def __str__(self):
+        return self.content[:50]
+
+    @classmethod
+    def create_problem(
+        cls,
+        knowledge: Knowledge,
+        content: str
+    ) -> 'Problem':
+        """Create a new problem/question."""
+        problem = cls(
+            knowledge=knowledge,
+            content=content
+        )
+        problem.save()
+        return problem
+
+    def record_hit(self) -> None:
+        """Record a hit on this problem."""
+        self.hit_num += 1
+        self.save()
+
+    def activate(self) -> None:
+        """Activate the problem."""
+        self.is_active = True
+        self.save()
+
+    def deactivate(self) -> None:
+        """Deactivate the problem."""
+        self.is_active = False
+        self.save()
+
+
+class ProblemParagraphMapping(models.Model):
+    """
+    Maps problems to paragraphs for Q&A retrieval.
+
+    A problem can be associated with multiple paragraphs, and a paragraph
+    can be linked to multiple problems.
+    """
+
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False,
+        verbose_name="Mapping ID"
+    )
+    problem = models.ForeignKey(
+        Problem,
+        on_delete=models.CASCADE,
+        related_name='paragraph_mappings',
+        verbose_name="Problem"
+    )
+    paragraph = models.ForeignKey(
+        Paragraph,
+        on_delete=models.CASCADE,
+        related_name='problem_mappings',
+        verbose_name="Paragraph"
+    )
+    document = models.ForeignKey(
+        Document,
+        on_delete=models.CASCADE,
+        related_name='problem_mappings',
+        verbose_name="Document"
+    )
+    knowledge = models.ForeignKey(
+        Knowledge,
+        on_delete=models.CASCADE,
+        related_name='problem_mappings',
+        verbose_name="Knowledge Base"
+    )
+    create_time = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Created At"
+    )
+
+    class Meta:
+        db_table = "problem_paragraph_mapping"
+        unique_together = ['problem', 'paragraph']
+        ordering = ['-create_time']
+
+    def __str__(self):
+        return f"Problem({self.problem_id}) -> Paragraph({self.paragraph_id})"
+
+    @classmethod
+    def create_mapping(
+        cls,
+        problem: 'Problem',
+        paragraph: Paragraph
+    ) -> 'ProblemParagraphMapping':
+        """Create a mapping between a problem and paragraph."""
+        mapping = cls(
+            problem=problem,
+            paragraph=paragraph,
+            document=paragraph.document,
+            knowledge=paragraph.knowledge
+        )
+        mapping.save()
+        return mapping
+
+    @classmethod
+    def get_paragraphs_for_problem(cls, problem_id: str) -> list:
+        """Get all paragraphs linked to a problem."""
+        mappings = cls.objects.filter(problem_id=problem_id).select_related('paragraph')
+        return [m.paragraph for m in mappings]
+
+    @classmethod
+    def get_problems_for_paragraph(cls, paragraph_id: str) -> list:
+        """Get all problems linked to a paragraph."""
+        mappings = cls.objects.filter(paragraph_id=paragraph_id).select_related('problem')
+        return [m.problem for m in mappings]
+
+    @classmethod
+    def delete_by_problem(cls, problem_id: str) -> int:
+        """Delete all mappings for a problem."""
+        count, _ = cls.objects.filter(problem_id=problem_id).delete()
+        return count
+
+    @classmethod
+    def delete_by_paragraph(cls, paragraph_id: str) -> int:
+        """Delete all mappings for a paragraph."""
+        count, _ = cls.objects.filter(paragraph_id=paragraph_id).delete()
+        return count

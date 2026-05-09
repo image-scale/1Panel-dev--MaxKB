@@ -47,4 +47,24 @@ urlpatterns = [
         views.ParagraphDetailView.as_view(),
         name='paragraph-detail'
     ),
+    path(
+        'workspace/<str:workspace_id>/knowledge/<uuid:knowledge_id>/problem',
+        views.ProblemListView.as_view(),
+        name='problem-list'
+    ),
+    path(
+        'workspace/<str:workspace_id>/knowledge/<uuid:knowledge_id>/problem/<uuid:problem_id>',
+        views.ProblemDetailView.as_view(),
+        name='problem-detail'
+    ),
+    path(
+        'workspace/<str:workspace_id>/knowledge/<uuid:knowledge_id>/problem/<uuid:problem_id>/mapping',
+        views.ProblemParagraphMappingListView.as_view(),
+        name='problem-mapping-list'
+    ),
+    path(
+        'workspace/<str:workspace_id>/knowledge/<uuid:knowledge_id>/problem/<uuid:problem_id>/mapping/<uuid:mapping_id>',
+        views.ProblemParagraphMappingDetailView.as_view(),
+        name='problem-mapping-detail'
+    ),
 ]
