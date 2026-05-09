@@ -5,8 +5,8 @@ Build the project incrementally starting with core data models and utilities, th
 
 ## Tasks
 - [x] Task 1: Implement user model with secure password hashing and user CRUD operations (users app)
-- [>] Task 2: Implement knowledge base model with folder organization and CRUD API (knowledge bases)
-- [ ] Task 3: Implement document model with status tracking and document management API (documents within knowledge bases)
+- [x] Task 2: Implement knowledge base model with folder organization and CRUD API (knowledge bases)
+- [>] Task 3: Implement document model with status tracking and document management API (documents within knowledge bases)
 - [ ] Task 4: Implement paragraph model for storing document segments with CRUD operations
 - [ ] Task 5: Implement text chunking utilities that split text into RAG-friendly segments
 - [ ] Task 6: Implement embedding storage model with vector field support for semantic storage

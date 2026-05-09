@@ -221,3 +221,155 @@ class Knowledge(models.Model):
         )
         knowledge.save()
         return knowledge
+
+
+class DocumentStatus:
+    """Document processing status states."""
+    PENDING = '0'
+    STARTED = '1'
+    SUCCESS = '2'
+    FAILURE = '3'
+    REVOKE = '4'
+    REVOKED = '5'
+    IGNORED = 'n'
+
+    CHOICES = [
+        (PENDING, 'Pending'),
+        (STARTED, 'Started'),
+        (SUCCESS, 'Success'),
+        (FAILURE, 'Failure'),
+        (REVOKE, 'Revoke'),
+        (REVOKED, 'Revoked'),
+        (IGNORED, 'Ignored'),
+    ]
+
+
+class HitHandlingMethod:
+    """How to handle document hits during retrieval."""
+    OPTIMIZATION = 'optimization'
+    DIRECTLY_RETURN = 'directly_return'
+
+    CHOICES = [
+        (OPTIMIZATION, 'Model Optimization'),
+        (DIRECTLY_RETURN, 'Direct Return'),
+    ]
+
+
+class Document(models.Model):
+    """Document within a knowledge base."""
+
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False,
+        verbose_name="Document ID"
+    )
+    knowledge = models.ForeignKey(
+        Knowledge,
+        on_delete=models.CASCADE,
+        related_name='documents',
+        verbose_name="Knowledge Base"
+    )
+    name = models.CharField(
+        max_length=150,
+        verbose_name="Document Name",
+        db_index=True
+    )
+    char_length = models.IntegerField(
+        verbose_name="Character Length",
+        default=0
+    )
+    status = models.CharField(
+        verbose_name='Status',
+        max_length=20,
+        choices=DocumentStatus.CHOICES,
+        default=DocumentStatus.PENDING,
+        db_index=True
+    )
+    status_meta = models.JSONField(
+        verbose_name="Status Metadata",
+        default=dict,
+        blank=True
+    )
+    is_active = models.BooleanField(
+        default=True,
+        db_index=True,
+        verbose_name="Active"
+    )
+    type = models.IntegerField(
+        verbose_name='Type',
+        choices=KnowledgeType.CHOICES,
+        default=KnowledgeType.BASE,
+        db_index=True
+    )
+    hit_handling_method = models.CharField(
+        verbose_name='Hit Handling Method',
+        max_length=20,
+        choices=HitHandlingMethod.CHOICES,
+        default=HitHandlingMethod.OPTIMIZATION
+    )
+    directly_return_similarity = models.FloatField(
+        verbose_name='Direct Return Similarity Threshold',
+        default=0.9
+    )
+    meta = models.JSONField(
+        verbose_name="Metadata",
+        default=dict,
+        blank=True
+    )
+    create_time = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Created At"
+    )
+    update_time = models.DateTimeField(
+        auto_now=True,
+        verbose_name="Updated At"
+    )
+
+    class Meta:
+        db_table = "document"
+        ordering = ['-create_time']
+
+    def __str__(self):
+        return f"{self.name} ({self.get_status_display()})"
+
+    @classmethod
+    def create_document(
+        cls,
+        knowledge: Knowledge,
+        name: str,
+        content: str = "",
+        doc_type: int = KnowledgeType.BASE,
+        hit_handling_method: str = HitHandlingMethod.OPTIMIZATION,
+        directly_return_similarity: float = 0.9,
+        meta: dict = None
+    ) -> 'Document':
+        """Create a new document in a knowledge base."""
+        document = cls(
+            knowledge=knowledge,
+            name=name,
+            char_length=len(content),
+            type=doc_type,
+            hit_handling_method=hit_handling_method,
+            directly_return_similarity=directly_return_similarity,
+            meta=meta or {}
+        )
+        document.save()
+        return document
+
+    def update_status(self, new_status: str, meta: dict = None) -> None:
+        """Update document status with optional metadata."""
+        self.status = new_status
+        if meta:
+            self.status_meta.update(meta)
+        self.save()
+
+    def activate(self) -> None:
+        """Activate the document."""
+        self.is_active = True
+        self.save()
+
+    def deactivate(self) -> None:
+        """Deactivate the document."""
+        self.is_active = False
+        self.save()

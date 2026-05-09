@@ -8,3 +8,10 @@
 **Commit**: Add user management with secure password handling and REST API
 **Acceptance**: 9/9 criteria met
 **Verification**: tests FAIL on previous state (import error), PASS on current state
+
+## Round 2
+**Task**: Task 2 — Implement knowledge base model with folder organization and CRUD API
+**Files created**: apps/knowledge/models.py, apps/knowledge/serializers.py, apps/knowledge/views.py, apps/knowledge/urls.py, tests/test_knowledge.py
+**Commit**: Add knowledge base management with folder organization and REST API
+**Acceptance**: 10/10 criteria met
+**Verification**: tests FAIL on previous state (import error), PASS on current state

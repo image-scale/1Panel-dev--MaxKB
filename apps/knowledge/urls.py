@@ -27,4 +27,14 @@ urlpatterns = [
         views.KnowledgeFolderDetailView.as_view(),
         name='folder-detail'
     ),
+    path(
+        'workspace/<str:workspace_id>/knowledge/<uuid:knowledge_id>/document',
+        views.DocumentListView.as_view(),
+        name='document-list'
+    ),
+    path(
+        'workspace/<str:workspace_id>/knowledge/<uuid:knowledge_id>/document/<uuid:document_id>',
+        views.DocumentDetailView.as_view(),
+        name='document-detail'
+    ),
 ]
