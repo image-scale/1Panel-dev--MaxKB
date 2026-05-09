@@ -4,8 +4,8 @@
 Build the project incrementally starting with core data models and utilities, then add the knowledge base features, followed by the RAG pipeline components (chunking, vectorization, search), then application/agent management, and finally the chat pipeline. Each task delivers a self-contained feature with tests.
 
 ## Tasks
-- [>] Task 1: Implement user model with secure password hashing and user CRUD operations (users app)
-- [ ] Task 2: Implement knowledge base model with folder organization and CRUD API (knowledge bases)
+- [x] Task 1: Implement user model with secure password hashing and user CRUD operations (users app)
+- [>] Task 2: Implement knowledge base model with folder organization and CRUD API (knowledge bases)
 - [ ] Task 3: Implement document model with status tracking and document management API (documents within knowledge bases)
 - [ ] Task 4: Implement paragraph model for storing document segments with CRUD operations
 - [ ] Task 5: Implement text chunking utilities that split text into RAG-friendly segments

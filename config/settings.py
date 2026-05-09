@@ -17,6 +17,7 @@ INSTALLED_APPS = [
     'django.contrib.auth',
     'rest_framework',
     'apps.users',
+    'apps.knowledge',
 ]
 
 ROOT_URLCONF = 'config.urls'
