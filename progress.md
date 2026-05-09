@@ -29,3 +29,45 @@
 **Commit**: Add paragraph management for document segments with hit tracking
 **Acceptance**: 9/9 criteria met
 **Verification**: tests FAIL on previous state (import error), PASS on current state
+
+## Round 5
+**Task**: Task 5 — Implement text chunking utilities that split text into RAG-friendly segments
+**Files created**: apps/common/chunking.py, tests/test_chunking.py
+**Commit**: Add text chunking utilities for splitting documents into RAG-friendly segments
+**Acceptance**: 7/7 criteria met
+**Verification**: tests FAIL on previous state (import error), PASS on current state
+
+## Round 6
+**Task**: Task 6 — Implement embedding storage model with vector field support for semantic storage
+**Files created**: tests/test_embedding.py (modified: apps/knowledge/models.py)
+**Commit**: Add embedding storage model for vector representations with paragraph associations
+**Acceptance**: 8/8 criteria met
+**Verification**: tests FAIL on previous state (import error), PASS on current state
+
+## Round 7
+**Task**: Task 7 — Implement vector search capabilities including embedding search, keyword search, and blend search
+**Files created**: apps/common/search.py, tests/test_search.py
+**Commit**: Add vector search capabilities with embedding, keyword, and blend search modes
+**Acceptance**: 8/8 criteria met
+**Verification**: tests FAIL on previous state (file not found), PASS on current state
+
+## Round 8
+**Task**: Task 8 — Implement problem/question model with paragraph associations for Q&A
+**Files created**: tests/test_problem.py (modified: apps/knowledge/models.py, serializers.py, views.py, urls.py)
+**Commit**: Add problem/question model with paragraph associations for Q&A retrieval
+**Acceptance**: 6/6 criteria met
+**Verification**: tests FAIL on previous state (import error), PASS on current state
+
+## Round 9
+**Task**: Task 9 — Implement application/agent model with knowledge base associations and settings
+**Files created**: apps/application/models.py, apps/application/serializers.py, apps/application/views.py, apps/application/urls.py, tests/test_application.py
+**Commit**: Add application/agent model with knowledge base associations and configurable settings
+**Acceptance**: 6/6 criteria met
+**Verification**: tests FAIL on previous state (RuntimeError - not in INSTALLED_APPS), PASS on current state
+
+## Round 10
+**Task**: Task 10 — Implement chat pipeline with context management and response generation
+**Files created**: apps/application/chat_models.py, tests/test_chat.py (modified: apps/application/serializers.py, views.py, urls.py)
+**Commit**: Add chat pipeline with conversation history, message roles, and record voting
+**Acceptance**: 6/6 criteria met
+**Verification**: tests FAIL on previous state (404 Not Found), PASS on current state

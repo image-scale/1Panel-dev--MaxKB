@@ -3,6 +3,7 @@ Serializers for Application models.
 """
 from rest_framework import serializers
 from .models import Application, ApplicationKnowledgeMapping, ApplicationType
+from .chat_models import Chat, ChatRecord, ChatMessage, VoteStatus
 
 
 class ApplicationSerializer(serializers.ModelSerializer):
@@ -97,3 +98,84 @@ class ApplicationKnowledgeMappingCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = ApplicationKnowledgeMapping
         fields = ['application', 'knowledge']
+
+
+class ChatSerializer(serializers.ModelSerializer):
+    """Serializer for reading chat data."""
+    application_name = serializers.SerializerMethodField()
+    user_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Chat
+        fields = [
+            'id', 'application', 'application_name', 'user', 'user_name',
+            'chat_user_id', 'chat_user_type', 'title', 'abstract',
+            'message_count', 'is_deleted', 'meta', 'create_time', 'update_time'
+        ]
+        read_only_fields = ['id', 'create_time', 'update_time']
+
+    def get_application_name(self, obj):
+        return obj.application.name if obj.application else None
+
+    def get_user_name(self, obj):
+        return obj.user.nick_name if obj.user else None
+
+
+class ChatCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creating a chat."""
+
+    class Meta:
+        model = Chat
+        fields = ['application', 'user', 'chat_user_id', 'chat_user_type', 'title', 'meta']
+
+
+class ChatRecordSerializer(serializers.ModelSerializer):
+    """Serializer for reading chat records."""
+
+    class Meta:
+        model = ChatRecord
+        fields = [
+            'id', 'chat', 'index', 'problem_text', 'answer_text',
+            'vote_status', 'message_tokens', 'answer_tokens', 'run_time',
+            'details', 'paragraph_ids', 'create_time'
+        ]
+        read_only_fields = ['id', 'create_time']
+
+
+class ChatRecordCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creating a chat record."""
+
+    class Meta:
+        model = ChatRecord
+        fields = [
+            'chat', 'problem_text', 'answer_text', 'message_tokens',
+            'answer_tokens', 'run_time', 'paragraph_ids', 'details'
+        ]
+
+
+class ChatRecordVoteSerializer(serializers.Serializer):
+    """Serializer for voting on a chat record."""
+    vote_status = serializers.ChoiceField(choices=VoteStatus.CHOICES)
+
+
+class ChatMessageSerializer(serializers.ModelSerializer):
+    """Serializer for reading chat messages."""
+
+    class Meta:
+        model = ChatMessage
+        fields = ['id', 'chat', 'role', 'content', 'tokens', 'meta', 'create_time']
+        read_only_fields = ['id', 'create_time']
+
+
+class ChatMessageCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creating a chat message."""
+
+    class Meta:
+        model = ChatMessage
+        fields = ['chat', 'role', 'content', 'tokens', 'meta']
+
+
+class SendMessageSerializer(serializers.Serializer):
+    """Serializer for sending a message to a chat."""
+    message = serializers.CharField(max_length=10240)
+    re_chat = serializers.BooleanField(default=False, required=False)

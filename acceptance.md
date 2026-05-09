@@ -58,10 +58,64 @@
 ## Task 5: Text Chunking Utilities
 
 ### Acceptance Criteria
-- [ ] Text chunking function that splits text into segments of configurable size
-- [ ] Chunking respects sentence boundaries (splits at punctuation like . ! ? ; newlines)
-- [ ] Chunks do not exceed specified maximum length
-- [ ] Empty chunks are filtered out
-- [ ] Whitespace is properly trimmed from chunks
-- [ ] Chinese and English text both work correctly
-- [ ] Large texts exceeding chunk size are handled gracefully
+- [x] Text chunking function that splits text into segments of configurable size
+- [x] Chunking respects sentence boundaries (splits at punctuation like . ! ? ; newlines)
+- [x] Chunks do not exceed specified maximum length
+- [x] Empty chunks are filtered out
+- [x] Whitespace is properly trimmed from chunks
+- [x] Chinese and English text both work correctly
+- [x] Large texts exceeding chunk size are handled gracefully
+
+## Task 6: Embedding Storage Model
+
+### Acceptance Criteria
+- [x] Embedding model stores vector representations with paragraph associations
+- [x] Embeddings link to source (paragraph, problem, or title)
+- [x] Embeddings can be queried by knowledge base, document, or paragraph
+- [x] Embedding vectors can be stored as JSON list of floats
+- [x] Source types include: paragraph, problem, title
+- [x] Embeddings can be activated/deactivated
+- [x] Batch save functionality for efficiency
+- [x] Embeddings can be deleted by source ID or knowledge base
+
+## Task 7: Vector Search Capabilities
+
+### Acceptance Criteria
+- [x] Embedding search function performs vector similarity calculations
+- [x] Keyword search function performs text-based search on paragraphs
+- [x] Blend search combines vector and keyword search results
+- [x] Search results include relevance scores
+- [x] Search supports filtering by knowledge base and document
+- [x] Search respects active status of paragraphs and embeddings
+- [x] Search results are ranked by similarity/relevance
+- [x] Search returns paragraph content with metadata
+
+## Task 8: Problem/Question Model
+
+### Acceptance Criteria
+- [x] Problem model links questions to paragraphs for Q&A
+- [x] Problems have content with hit tracking
+- [x] Problems can be associated with multiple paragraphs
+- [x] Problems can be queried by paragraph or knowledge base
+- [x] Problems support CRUD operations through API
+- [x] Problem-paragraph mappings support CRUD
+
+## Task 9: Application/Agent Model
+
+### Acceptance Criteria
+- [x] Application model stores agent configuration
+- [x] Applications link to knowledge bases for RAG
+- [x] Applications have configurable settings (prompts, limits)
+- [x] Applications track usage statistics
+- [x] Applications support CRUD operations through API
+- [x] Applications can be activated/deactivated
+
+## Task 10: Chat Pipeline
+
+### Acceptance Criteria
+- [x] Chat model stores conversation history
+- [x] Chat messages have role (user, assistant, system)
+- [x] Chat sessions belong to applications
+- [x] Chat supports context retrieval from linked knowledge bases
+- [x] Chat API supports sending messages and getting responses
+- [x] Chat history can be cleared or retrieved
